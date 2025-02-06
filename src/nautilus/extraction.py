@@ -87,7 +87,7 @@ class Features():
         self.N_X   = len(x)
         self.N_Y   = len(y)
     
-    def extract_initial_points(self, sub_az_av=True, savgol=True, beam_size=1) -> None:
+    def extract_initial_points(self, sub_az_av=True, savgol=True, beam_size=1, in_std=None) -> None:
         """
         Extract all the points along bright arcs and spirals using scipy.signal.find_peaks.
         
@@ -146,9 +146,11 @@ class Features():
 
         # loop over all azimuths
         for index_phi in range(self.N_PHI):
-            
-            std = np.std(data_for_extract[:,index_phi])
-        
+            if in_std:
+                std = in_std
+            else:
+                std = np.std(data_for_extract[:,index_phi])
+            #print("std is ", std)
             # extract indices of peaks
             indices_r = list(
                 find_peaks(
@@ -339,7 +341,7 @@ class Features():
         if save_u:
             self.u_rad_p = u_rad_p
         
-    def get_final_points_and_uncertainties_gaussian(self, rms, plots=True):
+    def get_final_points_and_uncertainties_gaussian(self, rms, plots=True, verbose=False):
         
         # calculate uncertainty on az-av subtracted
         u_I = rms * np.sqrt(1 + 1 / self.N_PHI)
@@ -404,7 +406,8 @@ class Features():
                     # update peak value
                     self.rad_p[point_no]   = popt[1] 
                     self.u_rad_p[point_no] = perr[1] #popt[2]
-                    print(popt[1], perr[1])
+                    if verbose:
+                        print(popt[1], perr[1])
                     point_no += 1
                     
                     # plot width
